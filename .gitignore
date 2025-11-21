@@ -1,0 +1,26 @@
+# Ignore raw CitiBike ZIP files
+data/raw/*
+*.zip
+
+# Ignore all processed big files
+data/Processed/*
+
+# Ignore Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore macOS system files
+.DS_Store
+# Ignore raw CitiBike ZIP files
+data/raw/*
+*.zip
+
+# Ignore large processed CSV files
+data/processed/*tripdata*.csv
+
+# Ignore Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore macOS system files
+.DS_Store
+
+
