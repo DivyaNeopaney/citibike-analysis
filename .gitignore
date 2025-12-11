@@ -24,3 +24,4 @@ data/processed/*tripdata*.csv
 .DS_Store
 
 
+CitiBike_Trips_Kepler_30percent.html
