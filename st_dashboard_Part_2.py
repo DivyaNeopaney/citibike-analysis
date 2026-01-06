@@ -10,12 +10,10 @@ st.set_page_config(page_title="CitiBike Strategy Dashboard", layout="wide")
 
 KEPLER_HTML = "CitiBike_Top500_Kepler.html"
 
-
 REDUCED_CANDIDATES = [
     "Data/Processed/reduced_data_to_plot.csv",
     "data/Processed/reduced_data_to_plot.csv",
 ]
-
 
 DAILY_CANDIDATES = [
     "data/Processed/daily_2022_rides_temp.csv",
@@ -28,11 +26,13 @@ TOP20_CANDIDATES = [
     "data/Processed/top20_sample.csv",
 ]
 
+
 def first_existing(paths):
     for p in paths:
         if os.path.exists(p):
             return p
     return None
+
 
 reduced_path = first_existing(REDUCED_CANDIDATES)
 daily_path = first_existing(DAILY_CANDIDATES)
@@ -78,16 +78,13 @@ page = st.sidebar.selectbox(
         "Introduction",
         "Dual-axis line chart",
         "Top stations bar chart",
-        "Kepler map",
+        "Map",
         "Extra Insight (Top routes)",
         "Recommendations",
     ],
 )
 
-st.sidebar.markdown("---")
-top_n = st.sidebar.slider("Top N", min_value=10, max_value=30, value=20)
-
-# ---------------------- Data for charts ----------------------
+# ---------------------- Daily data (for line chart) ----------------------
 if daily_path is not None:
     daily = pd.read_csv(daily_path, parse_dates=["date"])
 else:
@@ -96,58 +93,56 @@ else:
           .groupby("date", as_index=False)
           .agg(
               bike_rides_daily=("start_station", "count"),
-              avgTemp=("avgTemp", "mean")
+              avgTemp=("avgTemp", "mean"),
           )
           .sort_values("date")
     )
 
-# Top stations
+# ---------------------- Base tables (NOT trimmed by top_n yet) ----------------------
+# Top stations base table
 if top20_path is not None:
-    top_stations = pd.read_csv(top20_path)
-    # If file has more than needed, enforce columns
-    if "start_station" in top_stations.columns and "trips" in top_stations.columns:
-        top_stations = top_stations.sort_values("trips", ascending=False).head(top_n)
+    top_stations_base = pd.read_csv(top20_path)
+    # Ensure consistent sort even if file exists
+    if "start_station" in top_stations_base.columns and "trips" in top_stations_base.columns:
+        top_stations_base = top_stations_base.sort_values("trips", ascending=False)
     else:
-        # fallback compute if file doesn’t match expected structure
-        top_stations = (
+        top_stations_base = (
             df.groupby("start_station", as_index=False)
               .size()
               .rename(columns={"size": "trips"})
               .sort_values("trips", ascending=False)
-              .head(top_n)
         )
 else:
-    top_stations = (
+    top_stations_base = (
         df.groupby("start_station", as_index=False)
           .size()
           .rename(columns={"size": "trips"})
           .sort_values("trips", ascending=False)
-          .head(top_n)
     )
 
-# Extra chart: Top routes (computed from reduced sample)
-top_routes = (
+# Top routes base table
+top_routes_base = (
     df.groupby(["start_station", "end_station"], as_index=False)
       .size()
       .rename(columns={"size": "trips"})
       .sort_values("trips", ascending=False)
-      .head(top_n)
 )
 
-# ---------------------- Page: Intro ----------------------
+# ---------------------- Page: Introduction ----------------------
 if page == "Introduction":
-    st.title("CitiBike Strategy Dashboard (NYC 2022) ")
+    st.title("CitiBike Strategy Dashboard (NYC 2022)")
 
     st.markdown(
         "**Purpose**\n\n"
-        "This dashboard shows how and when Citi Bike is most heavily used, helping identify where bikes are most likely to run low. It highlights busy stations, seasonal changes, and common routes to support more efficient rebalancing and dock planning. \n\n"
+        "This dashboard shows how and when Citi Bike is most heavily used, helping identify where bikes are most likely to run low. "
+        "It highlights busy stations, seasonal changes, and common routes to support more efficient rebalancing and dock planning.\n\n"
         "It helps answer: *When is bike usage highest? Which stations are more likely to experience shortages? Which travel routes are used most consistently?*\n\n"
         "**What you'll see**\n"
         "- Dual-axis line chart: daily rides vs. average temperature\n"
         "- Bar chart: most popular start stations\n"
-        "- Kepler map: interactive visualization of trip patterns\n"
+        "- Map: visualization of trip patterns\n"
         "- Extra Insight: top station-to-station routes\n"
-        "- Recommendations: actions based on insights\n\n"
+        "- Recommendations: actions based on insights\n"
     )
 
     st.metric("Trips in reduced sample", f"{len(df):,}")
@@ -161,23 +156,25 @@ elif page == "Dual-axis line chart":
 
     fig.add_trace(
         go.Scatter(
-            x=daily["date"],
-            y=daily["bike_rides_daily"],
-            name="Daily Bike Rides",
-            mode="lines",
-            line=dict(width=3, color="blue") ),
-        secondary_y=False,
-    )
+        x=daily["date"],
+        y=daily["bike_rides_daily"],
+        name="Daily Bike Rides",
+        mode="lines",
+        line=dict(width=3, color="blue")
+    ),
+    secondary_y=False,
+)
 
     fig.add_trace(
         go.Scatter(
-            x=daily["date"],
-            y=daily["avgTemp"],
-            name="Avg Temperature",
-            mode="lines",
-            line=dict(width=3, color="red") ),
-        secondary_y=True,
-    )
+        x=daily["date"],
+        y=daily["avgTemp"],
+        name="Avg Temperature",
+        mode="lines",
+        line=dict(width=3, color="red")
+    ),
+    secondary_y=True,
+)
 
     fig.update_layout(
         title="Daily Citi Bike Rides vs Temperature (NYC 2022)",
@@ -191,13 +188,23 @@ elif page == "Dual-axis line chart":
 
     st.markdown(
         "**Interpretation**\n\n"
-        "As temperatures rise from winter into summer, daily bike rides increase, reaching their highest levels during the warmest months. When temperatures begin to drop in the fall and winter, ridership declines, showing that weather is a major factor influencing how often people use Citi Bike. "
-        "This suggests bike shortages are more likely during warm-season peaks"
+        "As temperatures rise from winter into summer, daily bike rides increase, reaching their highest levels during the warmest months. "
+        "When temperatures drop in fall and winter, ridership declines, showing that weather is a major factor influencing usage. "
+        "This suggests bike shortages are more likely during warm-season peaks."
     )
 
 # ---------------------- Page: Top stations bar ----------------------
 elif page == "Top stations bar chart":
+    top_n = st.sidebar.slider(
+        "Number of stations to display",
+        min_value=10,
+        max_value=30,
+        value=20
+    )
+
     st.header("Top Start Stations (Bar Chart)")
+
+    top_stations = top_stations_base.head(top_n)
 
     fig = go.Figure(
         go.Bar(
@@ -225,17 +232,17 @@ elif page == "Top stations bar chart":
 
     st.markdown(
         "**Interpretation**\n\n"
-        "This chart shows that the most popular start stations are concentrated in busy, central areas of the city, especially near transit hubs, commercial districts, and popular destinations. "
-        "These stations consistently generate a high number of trips, indicating strong and reliable demand."
+        "The most popular start stations tend to be in busy central areas near transit hubs, commercial districts, and popular destinations. "
+        "These stations consistently generate high trip volume, indicating strong and reliable demand."
     )
 
-# ---------------------- Page: Kepler map ----------------------
-elif page == "Kepler map":
-    st.header("CitiBike Trips Map (Kepler.gl)")
+# ---------------------- Page: Map ----------------------
+elif page == "Map":
+    st.header("CitiBike Trips Map")
 
     if not os.path.exists(KEPLER_HTML):
         st.warning(
-            f"Kepler file not found: {KEPLER_HTML}\n\n"
+            f"Map file not found: {KEPLER_HTML}\n\n"
             "Make sure CitiBike_Top500_Kepler.html is in the same folder as st_dashboard_Part_2.py."
         )
     else:
@@ -245,20 +252,28 @@ elif page == "Kepler map":
 
     st.markdown(
         "**Interpretation**\n\n"
-        "The map shows that Citi Bike trips are heavily concentrated in Manhattan. The dense clusters of routes indicate frequent, repeat travel between nearby stations, suggesting strong demand for short trips and commuting. These patterns help identify where bike availability, station capacity, and rebalancing efforts should be prioritized. These patterns help identify areas where bikes frequently move and where shortages may occur. "
+        "Trips are heavily concentrated in Manhattan, with dense clusters indicating frequent short travel between nearby stations. "
+        "These patterns help identify where station capacity and rebalancing efforts should be prioritized to reduce shortages."
     )
 
 # ---------------------- Page: Extra chart (Top routes) ----------------------
 elif page == "Extra Insight (Top routes)":
+    top_n = st.sidebar.slider(
+        "Number of routes to display",
+        min_value=10,
+        max_value=30,
+        value=20
+    )
+
     st.header("Extra Insight: Most Frequent Routes (Start → End)")
 
-    routes_plot = top_routes.copy()
-    routes_plot["route"] = routes_plot["start_station"] + " → " + routes_plot["end_station"]
+    top_routes = top_routes_base.head(top_n).copy()
+    top_routes["route"] = top_routes["start_station"] + " → " + top_routes["end_station"]
 
     fig = go.Figure(
         go.Bar(
-            x=routes_plot["route"],
-            y=routes_plot["trips"],
+            x=top_routes["route"],
+            y=top_routes["trips"],
         )
     )
     fig.update_layout(
@@ -274,29 +289,25 @@ elif page == "Extra Insight (Top routes)":
 
     st.markdown(
         "**Interpretation**\n\n"
-        "This chart shows that the most frequent Citi Bike routes are concentrated around Central Park, major transit hubs, and waterfront areas. Many of the top routes are short, repeat trips between the same start and end stations, suggesting that riders often use Citi Bike for commuting, leisure loops, and last-mile travel."
-        "The consistency of these routes indicates predictable demand patterns, which can help prioritize bike availability and rebalancing along these key corridors."
+        "Many of the top routes are short repeat trips between the same stations near major destinations and transit areas. "
+        "The consistency of these routes suggests predictable demand patterns, which can help prioritize bike availability and rebalancing along key corridors."
     )
 
 # ---------------------- Page: Recommendations ----------------------
 else:
     st.header("Recommendations")
 
-    st.markdown("""
-### Recommendations & Insights
-
-**1) Prepare for peak seasons**  
-- Bike demand increases in warmer months, so staffing levels and rebalancing frequency should be adjusted accordingly.
-
-**2) Prioritize high-demand stations**  
-- Focus monitoring and restocking efforts on the top start stations with consistently high trip volume.  
-- Evaluate dock capacity upgrades at stations that regularly experience supply pressure.
-
-**3) Apply corridor insights to operations**  
-- Repeated routes and dense corridors indicate where bikes are likely to accumulate or run short.  
-- Use these patterns to plan efficient truck routes and proactive rebalancing schedules.
-
-**4) Establish a weekly operations plan**  
-- Combine insights from top stations, seasonal trends, and corridor hotspots into a weekly priority list.  
-- Align rebalancing resources with this list to improve overall bike availability.
-""")
+    st.markdown(
+        "### Recommendations & Insights\n\n"
+        "**1) Prepare for peak seasons**\n"
+        "- Bike demand increases in warmer months, so staffing levels and rebalancing frequency should be adjusted accordingly.\n\n"
+        "**2) Prioritize high-demand stations**\n"
+        "- Focus monitoring and restocking efforts on the top start stations with consistently high trip volume.\n"
+        "- Evaluate dock capacity upgrades at stations that regularly experience supply pressure.\n\n"
+        "**3) Apply corridor insights to operations**\n"
+        "- Repeated routes and dense corridors indicate where bikes are likely to accumulate or run short.\n"
+        "- Use these patterns to plan efficient truck routes and proactive rebalancing schedules.\n\n"
+        "**4) Establish a weekly operations plan**\n"
+        "- Combine insights from top stations, seasonal trends, and corridor hotspots into a weekly priority list.\n"
+        "- Align rebalancing resources with this list to improve overall bike availability.\n"
+    )
