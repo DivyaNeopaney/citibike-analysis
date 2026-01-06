@@ -35,7 +35,17 @@ Members take shorter trips (commuting)
 - 🔹 Trip Duration Distribution (FacetGrid)
       - Casual riders show longer tail of trip duration
 Members cluster around short durations
+- 🔹 Top Start Stations
+- 🔹 Top Routes (Start -> End)
 - 📁 Repository Structure
 - ├─ data/           # cleaned datasets (raw excluded)
 - ├─ notebooks/      # analysis notebooks
 - └─ README.md       # project summary
+# Deployment
+The dashboard is deployed using Streamlit Community Cloud.
+GitHub Repository: (https://github.com/DivyaNeopaney/citibike-analysis)
+Live Dashboard: ()
+# Notes
+- Large raw datasets were excluded from the repository using .gitignore
+- Only the reduced dataset is included to ensure smooth deployment
+- This project was completed as part of the CareerFoundry Data Analytics Bootcamp
