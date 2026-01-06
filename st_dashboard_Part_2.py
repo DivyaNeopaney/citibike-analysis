@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 import streamlit.components.v1 as components
 
 # ---------------------- Config ----------------------
-st.set_page_config(page_title="CitiBike Strategy Dashboard (Part 2)", layout="wide")
+st.set_page_config(page_title="CitiBike Strategy Dashboard", layout="wide")
 
 KEPLER_HTML = "CitiBike_Top500_Kepler.html"
 
@@ -136,12 +136,12 @@ top_routes = (
 
 # ---------------------- Page: Intro ----------------------
 if page == "Introduction":
-    st.title("CitiBike Strategy Dashboard (NYC 2022) — Part 2")
+    st.title("CitiBike Strategy Dashboard (NYC 2022) ")
 
     st.markdown(
         "**Purpose**\n\n"
-        "This dashboard summarizes Citi Bike demand patterns and highlights where and when bike supply pressure is most likely to occur. It is designed to help identify high-demand stations, seasonal trends, and common trip corridors so operations teams can plan rebalancing and docking capacity more effectively.\n\n"
-        "It helps answer: *When does demand peak? Where are bikes most likely to run out? Which corridors repeat consistently?*\n\n"
+        "This dashboard shows how and when Citi Bike is most heavily used, helping identify where bikes are most likely to run low. It highlights busy stations, seasonal changes, and common routes to support more efficient rebalancing and dock planning. \n\n"
+        "It helps answer: *When is bike usage highest? Which stations are more likely to experience shortages? Which travel routes are used most consistently?*\n\n"
         "**What you'll see**\n"
         "- Dual-axis line chart: daily rides vs. average temperature\n"
         "- Bar chart: most popular start stations\n"
@@ -191,8 +191,8 @@ elif page == "Dual-axis line chart":
 
     st.markdown(
         "**Interpretation**\n\n"
-        "Ride volume tends to increase during warmer periods and decline in colder weather, showing a clear relationship between temperature and demand. "
-        "This suggests bike shortages are more likely during warm-season peaks, when rebalancing frequency and dock capacity planning should be intensified."
+        "As temperatures rise from winter into summer, daily bike rides increase, reaching their highest levels during the warmest months. When temperatures begin to drop in the fall and winter, ridership declines, showing that weather is a major factor influencing how often people use Citi Bike. "
+        "This suggests bike shortages are more likely during warm-season peaks"
     )
 
 # ---------------------- Page: Top stations bar ----------------------
@@ -225,8 +225,8 @@ elif page == "Top stations bar chart":
 
     st.markdown(
         "**Interpretation**\n\n"
-        "A small set of stations generates a large share of trip starts, creating predictable high-demand pressure points. "
-        "These stations should be prioritized for proactive rebalancing and may be strong candidates for additional dock capacity during peak demand."
+        "This chart shows that the most popular start stations are concentrated in busy, central areas of the city, especially near transit hubs, commercial districts, and popular destinations. "
+        "These stations consistently generate a high number of trips, indicating strong and reliable demand."
     )
 
 # ---------------------- Page: Kepler map ----------------------
@@ -245,8 +245,7 @@ elif page == "Kepler map":
 
     st.markdown(
         "**Interpretation**\n\n"
-        "The map highlights dense station clusters and travel corridors. These patterns help identify areas where bikes frequently move and where shortages may occur. "
-        "If top-demand stations also sit in dense corridors, rebalancing and capacity improvements there can produce the greatest impact across the network."
+        "The map shows that Citi Bike trips are heavily concentrated in Manhattan. The dense clusters of routes indicate frequent, repeat travel between nearby stations, suggesting strong demand for short trips and commuting. These patterns help identify where bike availability, station capacity, and rebalancing efforts should be prioritized. These patterns help identify areas where bikes frequently move and where shortages may occur. "
     )
 
 # ---------------------- Page: Extra chart (Top routes) ----------------------
@@ -275,25 +274,29 @@ elif page == "Extra Insight (Top routes)":
 
     st.markdown(
         "**Interpretation**\n\n"
-        "Repeated high-volume routes indicate consistent movement between station pairs. These corridors can cause predictable imbalances (bikes accumulating in one area and shortages in another). "
-        "Citi Bike can reduce stock-outs by pre-positioning bikes near common origins and scheduling rebalancing around these recurring patterns."
+        "This chart shows that the most frequent Citi Bike routes are concentrated around Central Park, major transit hubs, and waterfront areas. Many of the top routes are short, repeat trips between the same start and end stations, suggesting that riders often use Citi Bike for commuting, leisure loops, and last-mile travel."
+        "The consistency of these routes indicates predictable demand patterns, which can help prioritize bike availability and rebalancing along these key corridors."
     )
 
 # ---------------------- Page: Recommendations ----------------------
 else:
     st.header("Recommendations")
 
-    st.markdown(
-    "### Recommendations & Insights\n\n"
-    "**1) Prioritize peak-season operations**\n"
-    "- Demand increases with warmer temperatures, so staffing and rebalancing frequency should increase during warmer months.\n\n"
-    "**2) Focus on high-pressure stations**\n"
-    "- Focus monitoring and restocking on the top start stations that consistently drive high trip volume.\n"
-    "- Consider dock capacity upgrades at persistent pressure points.\n\n"
-    "**3) Use corridor patterns to plan operations**\n"
-    "- Dense corridors and repeated routes help predict where bikes will accumulate and where shortages will occur.\n"
-    "- Use these patterns to create efficient truck routes and proactive rebalancing schedules.\n\n"
-    "**4) Create a weekly operations playbook**\n"
-    "- Combine top stations + weather/season expectations + corridor hotspots into a weekly “high-risk station list.”\n"
-    "- Align rebalancing resources to that list to improve availability."
-)
+    st.markdown("""
+### Recommendations & Insights
+
+**1) Prepare for peak seasons**  
+- Bike demand increases in warmer months, so staffing levels and rebalancing frequency should be adjusted accordingly.
+
+**2) Prioritize high-demand stations**  
+- Focus monitoring and restocking efforts on the top start stations with consistently high trip volume.  
+- Evaluate dock capacity upgrades at stations that regularly experience supply pressure.
+
+**3) Apply corridor insights to operations**  
+- Repeated routes and dense corridors indicate where bikes are likely to accumulate or run short.  
+- Use these patterns to plan efficient truck routes and proactive rebalancing schedules.
+
+**4) Establish a weekly operations plan**  
+- Combine insights from top stations, seasonal trends, and corridor hotspots into a weekly priority list.  
+- Align rebalancing resources with this list to improve overall bike availability.
+""")
