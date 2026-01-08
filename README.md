@@ -48,4 +48,3 @@ Live Dashboard: (https://citibike-analysis-bgnqccwab2wnwxn6o6jkxw.streamlit.app)
 # Notes
 - Large raw datasets were excluded from the repository using .gitignore
 - Only the reduced dataset is included to ensure smooth deployment
-- This project was completed as part of the CareerFoundry Data Analytics Bootcamp
